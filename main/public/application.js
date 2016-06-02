@@ -6,7 +6,7 @@
 var AppConfig = (function() {
     'use strict';
     // Init module configuration options
-    var applicationModuleName = 'gae-angular-material-init';
+    var applicationModuleName = 'woTravel';
     var applicationModuleVendorDependencies = [
         'ngAnimate',
         'ngMessages',

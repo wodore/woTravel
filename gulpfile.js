@@ -1,7 +1,7 @@
 (function() {
     var gulp = require('gulp');
     require('gulp-grunt')(gulp);
-    var moduleName = "woFerie"
+    var moduleName = "woTravel"
 
     var $ = require('gulp-load-plugins')();
     var watch = require('gulp-watch');
