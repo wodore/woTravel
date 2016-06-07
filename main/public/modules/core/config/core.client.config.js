@@ -20,7 +20,7 @@
     });
 
     module.run(function(Restangular, gaToast, $state, $rootScope, $timeout, gaFlashMessages, _,
-                        gaAuthentication, gaBrowserHistory) {
+                        gaAuthentication, gaBrowserHistory,$templateRequest) {
         var loadingPromise;
         var endLoading = function() {
             $timeout.cancel(loadingPromise);
@@ -32,6 +32,13 @@
         }
 
         gaBrowserHistory.init();
+
+          // Pre-fetch icons sources by URL and cache in the $templateCache...
+          // subsequent $templateRequest calls will look there first.
+          //var urls = [ '/p/core/icons/mdi-icons.svg'];
+          //angular.forEach(urls, function(url) {
+            //$templateRequest(url);
+          //});
 
         Restangular.setErrorInterceptor(function(res) {
             endLoading();
@@ -104,12 +111,6 @@
             gaToast.show('Sorry, there was a error while loading that page.');
         });
 
-        /**
-         * Fires off when content was scrolled to bottom. This is defined in base.html
-         */
-        $rootScope.mainContentScrolled = function() {
-            $rootScope.$broadcast('mainContentScrolled');
-        };
 
     });
 

@@ -1,0 +1,21 @@
+<div layout-fill class="background-map no-overflow" flex layout="row">
+
+  <!--
+          defaults="defaults" url-hash-center="yes" 
+          -->
+  <leaflet  style="z-index:1;" id="mainMap"
+          height="600px" lf-center="center"  markers="markers"
+          tiles="tiles" layers="layers"  paths="paths"
+          zoom="zoom"  defaults="defaults"
+          event-broadcast="events" watch-options="watchOptions"
+          markers-watch-options="watchOptions.markers"
+          paths-watch-options="watchOptions.paths"
+          flex ></leaflet>
+
+  <md-button class="md-fab wt-floating-button wt-floating-bottom-right" 
+  aria-label="Add new trip"
+  ng-click="addTripDialog($event)">
+            <md-icon md-svg-icon="plus"></md-icon>
+        </md-button>
+
+</div>

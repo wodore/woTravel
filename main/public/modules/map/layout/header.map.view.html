@@ -1,0 +1,61 @@
+<div  class="md-toolbar-tools hpad-0" ng-controller="MapHeaderController as ctrl"  >
+
+    <!--<md-input-container class="">-->
+        <md-button class="md-icon-button" aria-label="search"
+            ng-click="toggleSearchInput()" flex="none" >
+            <md-icon md-svg-icon="{{searchIcon}}" ></md-icon>
+        </md-button>
+        <div class="md-toolbar-tools hpad-0" ng-show="search" >
+        <md-input-container class="md-accent"  md-theme="input" flex="90">
+          <label>Search</label>
+          <input id="search-input" ng-model="search_text" >
+        </md-input-container>
+        </div>
+        <!--</md-input-container>-->
+
+        <!--<div class="md-toolbar-tools hpad-0" ng-hide="search"  class="collection-menu" flex>-->
+      <!--<md-autocomplete
+          ng-disabled="ctrl.isDisabled"
+          md-no-cache="ctrl.noCache"
+          md-selected-item="ctrl.selectedItem"
+          md-search-text-change="ctrl.searchTextChange(ctrl.searchText)"
+          md-search-text="ctrl.searchText"
+          md-selected-item-change="ctrl.selectedItemChange(item)"
+          md-items="item in ctrl.querySearch(ctrl.searchText)"
+          md-item-text="item.name"
+          md-min-length="0"
+          md-autoselect="true"
+          placeholder="Pick an Angular repository"
+          md-menu-class="autocomplete-custom-template">
+        <md-item-template>
+          <span class="item-title">
+            <img ng-src="{{item.avatar_url}}" class="md-avatar" alt="{{item.name}}" style="width:30px;" />
+            <strong> {{item.name}} </strong>
+          </span>
+          <br>
+          <span class="item-metadata">
+            <span class="item-metastat">
+              <span>{{item.description}}</span>
+            </span>
+          </span>
+        </md-item-template>
+      </md-autocomplete>-->
+
+    <!--<md-select placeholder="Choose group" ng-model="collection" md-on-open="loadUsers()" style="min-width: 200px;font-size:16px;margin:0">
+      <md-option ng-value="col" ng-repeat="col in collections">
+          <span class="item-title">
+            <img ng-if="col.avatar_url" ng-src="{{col.avatar_url}}" class="md-avatar" alt="{{col.name}}" style="width:30px;" />
+            <strong> {{col.name}} </strong>
+          </span>
+      </md-option>
+    </md-select>
+
+        <form ng-submit="$event.preventDefault()" layout="row">
+            <md-button class="md-fab md-mini" ui-sref="collection.edit({collection: 'add'})" aria-label="Add Collection">
+                <i class="fa fa-plus btn-icon"></i>
+            </md-button>
+        </form>-->
+
+    </div>
+<div>
+

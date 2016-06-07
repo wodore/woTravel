@@ -1,0 +1,39 @@
+<!--<div ng-controller="MapSidenavController">-->
+<div>
+
+    <div ng-repeat="trip in trips.data">
+        <section>
+        <md-subheader class="md-primary">{{trip.name}}
+                        <md-button class="md-icon-button" 
+                            ng-click="fitMarkers(trip.markers,mainMap)"
+                            aria-label="Fit trip {{loc.locationRaw.name}}">
+                            <md-icon md-svg-icon="google-maps"></md-icon>
+                        </md-button>
+                        <md-button class="md-icon-button" 
+                            ng-click="addTripDialog($event,trip)"
+                            aria-label="View trip {{trip.name}}">
+                            <md-icon md-svg-icon="eye"></md-icon>
+                        </md-button>
+        </md-subheader>
+          <md-list layout-padding>
+            <md-list-item class="md-3-line" ng-repeat="loc in trip.locations">
+                <img ng-src="{{loc.avatar_url}}" class="md-avatar" alt="{{loc.name}}" ng-if="loc.avatar_url">
+                <div class="md-list-item-text">
+                  <h3>{{loc.name}}
+                        <md-button class="md-icon-button" 
+                            ng-click="mainMap.panTo(loc.locationRaw.marker)"
+                            aria-label="Move to marker {{loc.locationRaw.name}}">
+                            <md-icon md-svg-icon="google-maps"></md-icon>
+                        </md-button>
+                  </h3>
+                  <h4>{{loc.country}}</h4>
+                  <p>
+                        <md-icon md-svg-icon="account-multiple"></md-icon>
+                        <span ng-repeat="user in loc.fellow_travelers | limitTo:2">{{user.name}}<span ng-if="!$last">, </span></span><span ng-if="loc.fellow_travelers.length > 2">, and others.</span>
+                  </p>
+                </div>
+            </md-list-item>
+          </md-list>
+    </section>
+    </div>
+</div>

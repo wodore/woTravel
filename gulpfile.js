@@ -56,7 +56,15 @@
             'lib/moment/moment.js',
             'lib/moment-timezone/builds/moment-timezone-with-data.js',
             'lib/angular-moment/angular-moment.js',
-            'lib/ng-file-upload/ng-file-upload.js'
+            'lib/ng-file-upload/ng-file-upload.js',
+            'lib/leaflet/dist/leaflet.js',
+            'lib/ifvisible.js/src/ifvisible.js',
+            'lib/angular-simple-logger/dist/angular-simple-logger.js',
+            'lib/ui-leaflet/dist/ui-leaflet.js',
+            'lib/ng-flags/src/directives/ng-flags.js',
+            'lib/iso-3166-country-codes-angular/src/iso-3166-country-codes-angular.js',
+            'lib/leaflet.editable/src/Leaflet.Editable.js'
+
         ],
         scripts : [
             'application.js',
@@ -65,7 +73,8 @@
         ]
     };
     var cssFiles = [
-        'lib/angular-material/angular-material.css'
+        //'lib/angular-material/angular-material.css',
+        //'lib/leaflet/dist/leaflet.css'
     ];
     var lessPaths = [
      //   publicDir + '/lib/font-awesome/less'
@@ -180,6 +189,11 @@
             //cwd : publicLibDir
         //}).pipe(gulp.dest(distDir + '/fonts'))
     //});
+    gulp.task('copy-images', function() {
+        gulp.src('leaflet/dist/images/*', {
+            cwd : publicLibDir
+        }).pipe(gulp.dest(distDir + '/images'))
+    });
 
     gulp.task('clean-js', function() {
         del([publicLibDir, distDir]);
@@ -228,6 +242,7 @@
         'less',
         'watch',
         //'copy-fonts',
+        'copy-images',
         'run-server'
     ]);
 
@@ -236,7 +251,8 @@
         'zip-lib',
         'uglify',
         'inject-scripts',
-        'template-cache'
+        'template-cache',
+        'copy-images'
         //'copy-fonts'
     ]);
 

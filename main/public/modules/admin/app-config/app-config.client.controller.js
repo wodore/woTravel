@@ -59,7 +59,50 @@
                 gaToast.show('Application configuration was successfully saved.');
                 $scope.appConfigForm.$setPristine();
             });
+
+            $log.debug("[appConfig:save] expenseTypes:")
+            var newTypes = _.differenceWith($scope.expenseTypes,
+                    expenseTypesOld,
+                    function(newVal,oldVal){
+                        return (newVal.name === oldVal.name
+                            && newVal.description === oldVal.description
+                            && newVal.icon_url === oldVal.icon_url
+                            && newVal.icon_name === oldVal.icon_name);
+                    });
+            //var newTypes = _.differenceWith(expenseTypesOld,$scope.expenseTypes,
+             //                               _.isEqual);
+            $log.debug(newTypes);
+            _.forEach(newTypes, function(value, key) {
+                value.save();
+            });
+            //$scope.expenseTypes.save()
         };
+
+        //======================================================
+        // EXPENSE TYPES
+
+        var expenseTypesOld;
+        Restangular.all('expense_types').getList({size:500}).then(function(types) {
+            $log.debug("[appConfig:epense_types] results:")
+            $log.debug(types)
+            $scope.expenseTypes = types;
+            expenseTypesOld = _.cloneDeep(types);
+        });
+
+        $scope.addExpenseType = function() {
+            var newType = $scope.expenseTypes[0].clone();
+            newType.name = "";
+            newType.description = "";
+            newType.icon_name = "";
+            newType.icon_url = "";
+            newType.id = "";
+            newType.key = false;
+            $scope.expenseTypes.push(newType);
+        }
+        $scope.removeExpenseType = function(type) {
+            type.remove();
+            type.name = false
+        }
 
     });
 

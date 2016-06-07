@@ -2,6 +2,14 @@
     <md-tabs md-selected="tabIndex" class="app-config-content">
         <md-tab label="General">
             <md-content layout-padding layout="column">
+                    <md-button md-no-ink class="md-primary"
+                        ng-href="/admin/init" ng-if="!cfg.app_initialized">
+                        Initialize App 
+                    </md-button>
+                    <a class="md-primary"
+                        ng-href="/admin/init" ng-if="cfg.app_initialized">
+                        App update
+                    </a>
                 <md-input-container>
                     <label>Brand name</label>
                     <input ng-model="cfg.brand_name"
@@ -136,13 +144,55 @@
 
             </md-content>
         </md-tab>
+        <md-tab label="Expense Types">
+            <md-content layout-padding
+                        md-swipe-left="next()"
+                        md-swipe-right="previous()">
+                <div ng-repeat="type in expenseTypes" layout="column" 
+                    ng-show="type.name !== false">
+                    <div layout="row">
+                        <md-input-container>
+                            <label>Name</label>
+                            <input ng-model="type.name"
+                                   name="name-{{type.id}}">
+                        </md-input-container>
+                        <md-input-container>
+                            <label>Description</label>
+                            <input ng-model="type.description"
+                                   name="description-{{type.id}}">
+                        </md-input-container>
+                    </div>
+                    <div layout="row">
+                        <md-input-container>
+                            <label>Icon Name</label>
+                            <md-icon md-svg-icon="{{type.icon_name}}"></md-icon>
+                            <input ng-model="type.icon_name"
+                                   name="icon_name-{{type.id}}">
+                        </md-input-container>
+                        <md-input-container>
+                            <label>Icon URL</label>
+                            <input ng-model="type.icon_url"
+                                   name="icon_url-{{type.id}}">
+                        </md-input-container>
+                    </div>
+                    <md-button md-no-ink class="md-primary" ng-click="removeExpenseType(type)">
+                        delete {{type.name}}
+                    </md-button>
+                </div>
+                <md-button class="md-fab" aria-label="Add more" 
+                        ng-click="addExpenseType()">
+                      <md-icon md-svg-icon="plus-box"></md-icon>
+                </md-button>
+            </md-content>
+        </md-tab>
     </md-tabs>
     <md-content class="md-padding pad-top-0" layout="row" layout-margin>
         <md-button class="md-primary"
                    flex
                    type="submit"
-                   ng-disabled="!appConfigForm.$valid || !appConfigForm.$dirty || isLoading"
+                   ng-disabled="!appConfigForm.$valid || !appConfigForm.$dirty"
                    ng-click="save()">Save
+                   <!--|| isLoading"-->
         </md-button>
     </md-content>
 </form>

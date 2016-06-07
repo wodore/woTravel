@@ -9,3 +9,4 @@ factory_boy==2.7.0
 factoryboy-gaendb==0.1.5
 Unidecode==0.4.19
 GoogleAppEngineCloudStorageClient==1.9.22.1
+piplapis-python==5.0.8

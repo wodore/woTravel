@@ -23,6 +23,7 @@ class Config(Base, ConfigAuth):
     recaptcha_public_key = ndb.StringProperty(default='')
     salt = ndb.StringProperty(default=util.uuid())
     verify_email = ndb.BooleanProperty(default=True)  # Whether to verify emails of newly registered users
+    app_initialized = ndb.BooleanProperty(default=False)
 
     PUBLIC_PROPERTIES = ConfigAuth.get_public_properties() + \
                         ['analytics_id', 'brand_name', 'description', 'recaptcha_public_key',

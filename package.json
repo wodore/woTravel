@@ -1,5 +1,5 @@
 {
-  "name": "gae-angular-material-init",
+  "name": "woTravel",
   "author": "Tobias Burgherr",
   "licenses": [
     {
@@ -9,7 +9,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "http://github.com/TBxy/gae-angular-material-init"
+    "url": "http://github.com/wodore/woTravel"
   },
   "devDependencies": {
     "bower": "~1",

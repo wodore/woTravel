@@ -10,6 +10,7 @@ import util
 
 from main import API
 from model import User, UserValidator
+import model
 from api.helpers import ArgumentValidator, make_list_response,\
         make_empty_ok_response, default_parser, to_compare_date
 from flask import request, g
@@ -47,7 +48,23 @@ class UserByUsernameAPI(Resource):
             properties = User.get_private_properties()
         else:
             properties = User.get_public_properties()
-        return g.user_db.to_dict(include=properties)
+        traveler_key = getattr(g.user_db,'fellow_traveler',None)
+        if traveler_key:
+            traveler = traveler_key.get()
+            future=False
+        else:
+            traveler = model.FellowTraveler(name=g.user_db.name,
+                    email=g.user_db.email,
+                    avatar_url=g.user_db.avatar_url,
+                    added_by=g.user_db.key)
+            traveler_key =traveler.put()
+            g.user_db.fellow_traveler = traveler_key
+            future = g.user_db.put_async()
+        db_dict = g.user_db.to_dict(include=properties)
+        db_dict["fellow_traveler"] = traveler.to_dict(include=model.FellowTraveler.get_public_properties())
+        if future:
+            future.get_result()
+        return db_dict
 
 
 @API.resource('/api/v1/users/<string:key>')

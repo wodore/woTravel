@@ -1,4 +1,4 @@
-application: woTravel
+application: wo-travel
 version: alpha-001
 runtime: python27
 api_version: 1
@@ -36,6 +36,12 @@ handlers:
   mime_type: font/ttf
   expiration: 1000d
 
+- url: /p/(.*\.png)
+  static_files: public/\1
+  upload: public/(.*\.png)
+  mime_type: image/png
+  expiration: 1000d
+
 - url: /p/core/icons/(.*\.svg)
   static_files: public/modules/core/icons/\1
   upload: public/modules/core/icons/(.*\.svg)
@@ -44,6 +50,11 @@ handlers:
 - url: /p/
   static_dir: public/
   expiration: 1000d
+
+- url: /admin/.*
+  script: main.app
+  secure: always
+  login: admin
 
 - url: /.*
   script: main.app

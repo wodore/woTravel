@@ -91,32 +91,47 @@ class Base(ndb.Model):
     PRIVATE_PROPERTIES = []
 
     def to_dict(self, include=None):
-        """Return a dict containing the entity's property values, so it can be passed to client
+        """Return a dict containing the entity's property values,
+        so it can be passed to client
 
         Args:
-            include (list, optional): Set of property names to include, default all properties
+            include (list, optional): Set of property names to include,
+                default all properties.
+                For nested elements the list can use a dict:
+                    eg.
+                        ['name','description,{'tags':['name','count']}]
         """
         repr_dict = {}
         if include is None:
-            return super(Base, self).to_dict(include=include)
+            include = _.keys(self._properties)
+            #return super(Base, self).to_dict(include=include)
+
+        def to_value(attr,name_str, name=None):
+            if isinstance(attr, datetime.date):
+                return attr.isoformat()
+            elif isinstance(attr, ndb.Key):
+                if name_str == 'key':
+                    return self.key.urlsafe()
+                else:
+                    return attr.urlsafe()
+            elif isinstance(attr, ndb.GeoPt):
+                return {'lat':attr.lat,
+                        'lng': attr.lon,
+                        'lon': attr.lon}
+            elif hasattr(attr, '__iter__'):    # iterable, not string
+                return [to_value(a,name_str,name) for a in attr]
+            elif hasattr(attr, 'to_dict'):    # hooray for duck typing!
+                incl = None if not isinstance(name,dict) else name[name_str]
+                return attr.to_dict(include=incl)
+            else:
+                return attr
 
         for name in include:
-            attr = getattr(self, name)
-            if isinstance(attr, datetime.date):
-                repr_dict[name] = attr.isoformat()
-            elif isinstance(attr, ndb.Key):
-                if name == 'key':
-                    repr_dict[name] = self.key.urlsafe()
-                    repr_dict['id'] = self.key.id()
-                else:
-                    repr_dict[name] = attr.urlsafe()
-            elif isinstance(attr, ndb.GeoPt):
-                repr_dict[name] = {'lat':attr.lat,
-                                    'lon': attr.lon}
-            elif hasattr(attr, 'key'): # it is a structured property -> recursive
-                repr_dict[name] = attr.to_dict(include=attr.get_all_properties())
-            else:
-                repr_dict[name] = attr
+            name_str = name if not isinstance(name,dict) else name.keys()[0]
+            attr = getattr(self, name_str)
+            repr_dict[name_str] = to_value(attr,name_str,name)
+            if name_str == 'key':
+                repr_dict['id'] = self.key.id()
         return repr_dict
 
     def populate(self, **kwargs):
@@ -180,18 +195,51 @@ class Base(ndb.Model):
         return (ent, True)  # True meaning "created"
 
     @classmethod
-    def create_or_update(cls,key=None,**kwargs):
+    def create_or_update(cls,key=None, urlsafe=False, parent=None, **kwargs):
         """ Updates an entity or creates a new one.
         If key is None it creates a new entity, if key is set it gets it.
 
         Returns
             key
         """
+        def omit(data, omit_list):
+            values = {}
+            for k, v in data.iteritems():
+                if isinstance(v, dict):    # iterable, not string
+                    values[k] = omit(v,omit_list)
+                elif k not in omit_list:
+                    values[k] = v
+            return  values
+        print "CREATE OR UPDATE"
+        print cls
+
         if key:
+            print "GOT key"
+            print key
+            if urlsafe:
+                print "User urlsave"
+                key = ndb.Key(urlsafe=key)
+                print key
             db = key.get()
+            print kwargs
+            kwargs = omit(kwargs, Base.PUBLIC_PROPERTIES + ['key', 'id'])  # We don't want to populate those properties
+            print "kwargs after omiting"
+            print "============================="
+            print kwargs
             db.populate(**kwargs)
         else:
-            db = cls(**kwargs)
+            print "Save new one"
+            print "properties are:"
+            print _.keys(cls._properties)
+            # We don't want to populate those properties
+            kwargs = omit(kwargs, Base.PUBLIC_PROPERTIES + ['key', 'id'])
+            # We want to populate only real model properties
+            kwargs = _.pick(kwargs, _.keys(cls._properties))
+            # TODO should be deep!
+            print "____________________________________"
+            print "kwargs"
+            print kwargs
+            db = cls(parent=parent,**kwargs)
         key = db.put()
         return key
 
@@ -232,7 +280,7 @@ class Base(ndb.Model):
             if isinstance(date, basestring):
                 date = datetime.datetime.strptime(date,"%Y-%m-%d %H:%M:%S")
             if time_offset:
-                date = date + datetime.timedelta(seconds=time_offset)
+                date = date + datetime.timedelta(seconds=int(time_offset))
             if compare_date == '>modified' :
                 qry = qry.filter(cls.modified > date)
             elif compare_date == '>=modified' :

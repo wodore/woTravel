@@ -8,6 +8,7 @@ from main import app
 import auth
 import config
 from model import User, UserValidator, Config
+import model
 from api.helpers import ArgumentValidator
 
 @app.route('/')
@@ -20,8 +21,24 @@ def index():
 def inject_user():
     """Injects 'user' variable into jinja template, so it can be passed into angular. See base.html"""
     user = False
+    user_future = False
     if auth.is_logged_in():
-        user = auth.current_user_db().to_dict(include=User.get_private_properties())
+        user_db = auth.current_user_db()
+        user = user_db.to_dict(include=User.get_private_properties())
+        traveler_key = getattr(user_db,'fellow_traveler',None)
+        if traveler_key:
+            traveler = traveler_key.get()
+        else:
+            traveler = model.FellowTraveler(name=user_db.name,
+                    email=user_db.email,
+                    avatar_url=user_db.avatar_url,
+                    added_by=user_db.key)
+            traveler_key =traveler.put()
+            user_db.fellow_traveler = traveler_key
+            user_future = user_db.put_async()
+        user["fellow_traveler"] = traveler.to_dict(include=model.FellowTraveler.get_public_properties())
+        if user_future:
+            user_future.get_result()
     return {
         'user': user
     }

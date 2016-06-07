@@ -64,6 +64,7 @@ class User(model.Base):
     bio = ndb.StringProperty(default='', validator=UserValidator.create('bio'))
     avatar_url = ndb.StringProperty(default='',required=True, indexed=False)
     location = ndb.StringProperty(default='', validator=UserValidator.create('location'))
+    fellow_traveler = ndb.KeyProperty(kind="FellowTraveler")
     facebook = ndb.StringProperty(default='', validator=UserValidator.create('social'))
     twitter = ndb.StringProperty(default='', validator=UserValidator.create('social'))
     gplus = ndb.StringProperty(default='', validator=UserValidator.create('social'))
@@ -73,9 +74,9 @@ class User(model.Base):
 
     PUBLIC_PROPERTIES = ['avatar_url', 'name', 'username', 'bio', 'location',
                          'facebook', 'twitter', 'gplus', 'linkedin', 'github',
-                         'instagram', 'admin', 'active', 'verified' ]
+                         'instagram', 'admin', 'active', 'verified']
 
-    PRIVATE_PROPERTIES = ['auth_ids', 'email', 'permissions']
+    PRIVATE_PROPERTIES = ['auth_ids', 'email', 'permissions','fellow_traveler']
 
     #@property
     #def avatar_url(self):
@@ -108,6 +109,23 @@ class User(model.Base):
         if user_db and user_db.password_hash == util.password_hash(password):
             return user_db
         return None
+
+
+    def _post_put_hook(self,future):
+        traveler = getattr(self,'fellow_traveler',None)
+        if not traveler:
+            key = future.get_result()
+            db = model.FellowTraveler(name=self.name,
+                    email=self.email,
+                    avatar_url=self.avatar_url,
+                    added_by=key)
+            self.fellow_traveler = db.put()
+            self.put_async()
+        else:
+            db = traveler.get()
+            if not hasattr(db,'avatar_url') and hasattr(self,'avatar_url'):
+                db.avatar_url = self.avatar_url
+                db.put_async()
 
 
     @classmethod
