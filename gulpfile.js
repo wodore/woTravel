@@ -189,6 +189,11 @@
             //cwd : publicLibDir
         //}).pipe(gulp.dest(distDir + '/fonts'))
     //});
+    gulp.task('copy-mdi-fonts', function() {
+        gulp.src('mdi/fonts/*', {
+            cwd : publicLibDir
+        }).pipe(gulp.dest(distDir + '/fonts'))
+    });
     gulp.task('copy-images', function() {
         gulp.src('leaflet/dist/images/*', {
             cwd : publicLibDir
@@ -242,6 +247,7 @@
         'less',
         'watch',
         //'copy-fonts',
+        'copy-mdi-fonts',
         'copy-images',
         'run-server'
     ]);
@@ -252,6 +258,7 @@
         'uglify',
         'inject-scripts',
         'template-cache',
+        'copy-mdi-fonts',
         'copy-images'
         //'copy-fonts'
     ]);

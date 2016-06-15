@@ -22,8 +22,9 @@
     "leaflet": "0.7.x",
     "iso-3166-country-codes-angular": "^1.2.1",
     "ifvisible.js": "1.0.4",
-    "ng-flags" : "https://github.com/asafdav/ng-flags.git#v0.0.2",
-    "leaflet.editable" : "~0.6.x"
+    "ng-flags": "https://github.com/asafdav/ng-flags.git#v0.0.2",
+    "leaflet.editable": "~0.6.x",
+    "mdi": "^1.6.50"
   },
   "resolutions": {
     "lodash": "~4.0",

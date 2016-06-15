@@ -3,7 +3,7 @@
     var module = angular.module('map');
 
     /**
-     * @name wdTiles
+     * @name wtTransport
      * @memberOf angularModule.map
      * @description
      * Serves map tiles
@@ -12,7 +12,7 @@
     module.service('wtTransport', function(Restangular,$log) {
 
         var self = this;
-        var S = 2.5;
+        var S = 2.0;
         this.defaultStyle = {
                   weight: S * 3,
                   opacity : 0.4,
@@ -23,43 +23,44 @@
                   } 
         // distance is used for suggestions
         this.list = [ 
-            { name : "none",
+            { type : "none",
               distance : 0,
               style : _.defaults({
                   color : 'green',
                   weight : S * 0
                                 }, this.defaultStyle),
               icon : "alert-circle-outline" },
-            { name : "plane",
+            { type : "plane",
               style : _.defaults({
                   color : 'blue',
-                  weight : S * 6,
-                  dashArray : "15, 10",
+                  weight : S * 1.2,
+                  opacity : 0.3,
+                  dashArray : "10, 20",
                                 }, this.defaultStyle),
               distance : 100000,
               icon : "airplane" },
-            { name : "train",
+            { type : "train",
               style : _.defaults({
                   color : 'red',
                   weight : S * 4
                                 }, this.defaultStyle),
               distance : 300,
               icon : "train" },
-            { name : "bus",
+            { type : "bus",
               style : _.defaults({
                   color : 'green',
                   weight : S * 3
                                 }, this.defaultStyle),
               distance : 150,
               icon : "bus" },
-            { name : "car",
+            { type : "car",
               style : _.defaults({
                   color : 'green',
                   weight : 3
                                 }, this.defaultStyle),
               distance : 250,
               icon : "car" },
-            { name : "taxi",
+            { type : "taxi",
               style : _.defaults({
                   color : 'green',
                   weight : 3,
@@ -67,42 +68,42 @@
                                 }, this.defaultStyle),
               distance : 50,
               icon : "taxi" },
-            { name : "motorbike",
+            { type : "motorbike",
               style : _.defaults({
                   color : 'pink',
                   weight : S * 3
                                 }, this.defaultStyle),
               distance : 0,
               icon : "motorbike" },
-            { name : "bike",
+            { type : "bike",
               style : _.defaults({
                   color : 'yellow',
                   weight : S * 2
                                 }, this.defaultStyle),
               distance : 100,
               icon : "bike" },
-            { name : "foot",
+            { type : "foot",
               style : _.defaults({
                   color : 'green',
                   weight : S * 6
                                 }, this.defaultStyle),
               distance : 10,
               icon : "walk" },
-            { name : "boat",
+            { type : "boat",
               style : _.defaults({
                   color : 'green',
                   weight : S * 5
                                 }, this.defaultStyle),
               distance : 0,
               icon : "water" },
-            { name : "hitchhiking",
+            { type : "hitchhiking",
               style : _.defaults({
                   color : 'brown',
                   weight : S * 3
                                 }, this.defaultStyle),
               distance : 0,
               icon : "baby" },
-            { name : "other",
+            { type : "other",
               style : _.defaults({
                   color : 'green',
                   weight : S * 4
@@ -110,23 +111,23 @@
               distance : 0,
               icon : "compass" },
            ];
-        this.listNames = _.map(self.list, 'name');
+        this.listTypes = _.map(self.list, 'type');
         this.listIcons = _.map(self.list, 'icon');
-        this.listNameKeys = _.keyBy(self.list, 'name');
+        this.listTypeKeys = _.keyBy(self.list, 'type');
         this.listIconKeys = _.keyBy(self.list, 'icon');
         $log.debug("[wtTransport] init");
-        //$log.debug("[wtTransport] listNames");
-        //$log.debug(this.listNames);
+        //$log.debug("[wtTransport] listTypes");
+        //$log.debug(this.listTypes);
         //$log.debug("[wtTransport] listIcons");
         //$log.debug(this.listIcons);
-        //$log.debug("[wtTransport] listNameKeys");
-        //$log.debug(this.listNameKeys);
+        //$log.debug("[wtTransport] listTypeKeys");
+        //$log.debug(this.listTypeKeys);
         //$log.debug("[wtTransport] listIconKeys");
         //$log.debug(this.listIconKeys);
-        this.getStyle = function(name){
-            name = typeof name !== 'undefined' ? name : 'other';
-            var style = _.get(this.listNameKeys,[name,'style'],
-                this.listNameKeys['other'].style );
+        this.getStyle = function(type){
+            type = typeof type !== 'undefined' ? type : 'other';
+            var style = _.get(this.listTypeKeys,[type,'style'],
+                this.listTypeKeys['other'].style );
             return  style
         }
 

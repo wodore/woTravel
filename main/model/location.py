@@ -23,7 +23,8 @@ class Expenses(model.Base):
 
 class Transport(model.Base):
     waypoints = ndb.GeoPtProperty(repeated=True,indexed=False) # lat/long coordinates
-    name = ndb.StringProperty(default='none',required=True, choices=['other','none','plane','boat','car','taxi','train','bus','bike','motobike','foot','hitchhiking'])
+    type = ndb.StringProperty(default='none',required=True, choices=['other','none','plane','boat','car','taxi','train','bus','bike','motobike','foot','hitchhiking'])
+    name = ndb.StringProperty(default='',required=True)
     icon = ndb.StringProperty(default='',required=True)
     note = ndb.StringProperty(default='',required=True)
 
@@ -43,10 +44,10 @@ class Location(model.Base):
     pictures = ndb.BooleanProperty(default=False)
     fellow_travelers = ndb.KeyProperty(kind="FellowTraveler",repeated=True) # TODO add as local strucered property?
     expenses = ndb.StructuredProperty(Expenses, repeated=True)
-    trans_to = ndb.StructuredProperty(Transport)
-    trans_from = ndb.StructuredProperty(Transport)
+    trans_start = ndb.StructuredProperty(Transport)
+    trans_end = ndb.StructuredProperty(Transport)
 
-    PUBLIC_PROPERTIES = ['avatar_url', 'name', 'description','trip','start_datetime','end_datetime','duration','geo','country','country_code','pictures','fellow_travelers',{'expenses':['amount','type','note']},'trans_to','trans_from']
+    PUBLIC_PROPERTIES = ['avatar_url', 'name', 'description','trip','start_datetime','end_datetime','duration','geo','country','country_code','pictures','fellow_travelers',{'expenses':['amount','type','note']},'trans_start','trans_end']
 
     PRIVATE_PROPERTIES = []
 

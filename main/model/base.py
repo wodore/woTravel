@@ -213,7 +213,7 @@ class Base(ndb.Model):
         print "CREATE OR UPDATE"
         print cls
 
-        if key:
+        if key and (key != "new" or key !="add"):
             print "GOT key"
             print key
             if urlsafe:
@@ -275,6 +275,14 @@ class Base(ndb.Model):
             qry = qry.order(cls.created)
         elif order_by_date == '-created':
             qry = qry.order(-cls.created)
+        elif order_by_date == '-start_datetime':
+            qry = qry.order(-entity.start_datetime)
+        elif order_by_date == 'start_datetime':
+            qry = qry.order(entity.start_datetime)
+        elif order_by_date == '-end_datetime':
+            qry = qry.order(-entity.end_datetime)
+        elif order_by_date == 'end_datetime':
+            qry = qry.order(entity.end_datetime)
 
         if date:
             if isinstance(date, basestring):
@@ -297,6 +305,15 @@ class Base(ndb.Model):
                 qry = qry.filter(cls.created < date)
             elif compare_date == '<=created' :
                 qry = qry.filter(cls.created <= date)
+
+            elif compare_date == '<=start_datetime' :
+                qry = qry.filter(entity.start_datetime <= date)
+            elif compare_date == '>=start_datetime' :
+                qry = qry.filter(entity.start_datetime >= date)
+            elif compare_date == '<=end_datetime' :
+                qry = qry.filter(entity.end_datetime <= date)
+            elif compare_date == '>=end_datetime' :
+                qry = qry.filter(entity.end_datetime >= date)
 
         if version:
             if compare_version == '>' :

@@ -67,7 +67,7 @@
                     res = res+", "+_.get(obj,"state")+"";
                     target.state = _.get(obj,"state")
                 } else {
-                    target.state = false
+                    target.state = ""
                 }
                 if (_.has(obj,"country")){
                     res = res+" ("+_.get(obj,"country")+")";
@@ -75,7 +75,7 @@
                     var code = ISO3166.getCountryCode(target.country);
                     target.country_code = code;
                 } else {
-                    target.country = false
+                    target.country = ""
                 }
                 if (_.has(obj,"osm_value")){
                     //res = res+"["+_.get(obj,"osm_value")+"]";

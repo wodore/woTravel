@@ -56,13 +56,16 @@ class FellowTravelerByKeyAPI(Resource):
         return g.model_db.to_dict(include=properties)
 
 
-    @admin_required
+    @login_required
     #@model_by_key
     def put(self, key):
         """Updates expense type's properties"""
         update_properties = ['name', 'description', 'avatar_url', 'icon_name', 'added_by','key']
         new_data = _.pick(request.json, update_properties)
-        new_data['added_by'] = ndb.Key(urlsafe=new_data['added_by'])
+        if hasattr(new_data,'added_by'):
+            new_data['added_by'] = ndb.Key(urlsafe=new_data['added_by'])
+        else:
+            new_data['added_by'] = auth.current_user_key()
         key = model.FellowTraveler.create_or_update(urlsafe=True, **new_data)
         properties = model.FellowTraveler.get_public_properties()
         return key.get().to_dict(include=properties)

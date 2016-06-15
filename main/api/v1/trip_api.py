@@ -63,15 +63,18 @@ class TripsAPI(Resource):
                     locs = [f.get_result() for f in loc_future]
                     locs = [db.to_dict(include=model.Location.get_public_properties()) for db in locs]
                     u=0
-                    if (args.expenses or args.travelers):
+                    if (args.expenses or args.travelers or True):
                         for loc in locs:
+                            for trans in ['trans_start','trans_end']:
+                                wayPt = locs[u][trans].get('waypoints',[])
+                                locs[u][trans]['geo'] = wayPt[-1] if len(wayPt) > 0 else None
                             if args.travelers:
                                 locs[u]['fellow_travelers'] = [ndb.Key(urlsafe=db).get().to_dict(include=
                                             model.FellowTraveler.get_public_properties())
                                             for db in loc['fellow_travelers']]
                             if args.expenses:
-                                print "Get expenses"
-                                print loc['expenses']
+                                #print "Get expenses"
+                                #print loc['expenses']
                                 locs[u]['expenses'] = [{"amount": e['amount'] if 'amount' in e else 0,
                                                         "note": e['note'] if 'note' in e else "",
                                             "type":ndb.Key(urlsafe=e['type']).get().
@@ -106,7 +109,7 @@ class TripsByKeyAPI(Resource):
 
 
     @admin_required
-    @ndb.transactional(xg=True)
+    #@ndb.transactional(xg=True)
     #@model_by_key
     def put(self, key): # TODO check and use key if given
         """Updates expense type's properties"""
@@ -114,8 +117,15 @@ class TripsByKeyAPI(Resource):
         new_data = _.pick(request.json, update_properties)
         #new_data['added_by'] = ndb.Key(urlsafe=new_data['added_by'])
         # get trip key (if new)
-        if not new_data.get("key",False):
+
+        print "UPDATE TRIP"
+        print new_data
+        print "key"
+        print new_data.get('key')
+
+        if new_data.get("key","new") == "new" or new_data.get("key") == "add" :
             trip_key = model.Trip.create_or_update(urlsafe=True, parent=auth.current_user_key(), name=new_data['name'])
+            new_data['key'] = trip_key.urlsafe();
         else:
             trip_key = ndb.Key(urlsafe=new_data.get("key"))
 
@@ -141,13 +151,18 @@ class TripsByKeyAPI(Resource):
             loc['start_datetime'] = start_date
             loc['end_datetime'] = end_date
             loc['trip'] = trip_key
-            if loc['lat']:
-                loc['geo'] =  ndb.GeoPt(lat=loc['lat'],lon=loc['lon'])
+            if loc['geo']:
+                loc['geo'] =  ndb.GeoPt(lat=loc['geo']['lat'],lon=loc['geo']['lng'])
             print "SAVE EXPENSES"
             loc['expenses'] = [{"amount":float(e.get('amount',0)),
                 "note":e.get('note',""),
                 "type":ndb.Key(urlsafe=e['type']) if e.get('type',False) else None} for e in loc['expenses']]
             print loc['expenses']
+            if 'trans_start' in loc:
+                loc['trans_start']['waypoints'] = [ndb.GeoPt(lat=m.get('lat'),lon=m.get('lng')) for m in loc['trans_start'].get('waypoints',[])]
+            if 'trans_end' in loc:
+                loc['trans_end']['waypoints'] = [ndb.GeoPt(lat=m.get('lat'),lon=m.get('lng')) for m in loc['trans_end'].get('waypoints',[])]
+            #loc['trans_end']['waypoints'] = [ndb.GetPt(lat=m.lat,lon=m.lng) for m in loc.trans_end.get('waypoints',[])[])]
             if loc.get("new",True):
                 print "Save/update location"
                 loc_keys.append(model.Location.create_or_update(urlsafe=True,\

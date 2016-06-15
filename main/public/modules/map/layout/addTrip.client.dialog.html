@@ -27,13 +27,13 @@
     </div>
     <md-dialog-content>
     <div class="md-dialog-content">
-        <div class="locations-list" ng-repeat="loc in locations" layout="column">
+        <div class="locations-list" ng-repeat="loc in trip.locations" layout="column">
             <!-- EDIT HTML ___ if (loc.edit)-->
             <div class="location-edit md-whiteframe-2dp" ng-if="loc.edit">
                 <md-toolbar class="md-hue-2" id="editLocation{{$index}}">
                   <div class="md-toolbar-tools">
                     <md-button class="md-icon-button" aria-label="Settings" ng-disabled="true">
-                      <md-icon md-svg-icon="menu"></md-icon>
+                      <md-icon wt-icon="menu"></md-icon>
                     </md-button>
                     <h2>
                         <span ng-if="loc.locationRaw">{{loc.locationRaw.description}}</span>
@@ -42,18 +42,18 @@
                     <span flex></span>
                         <md-button class="md-icon-button" 
                             ng-click="dialogMap.panTo(loc.locationRaw.marker)"
-                            aria-label="Delete {{loc.locationRaw.name}}">
-                            <md-icon md-svg-icon="google-maps"></md-icon>
+                            aria-label="Go to {{loc.locationRaw.name}}">
+                            <md-icon wt-icon="google-maps"></md-icon>
                         </md-button>
                         <md-button class="md-icon-button" 
                             ng-click="removeExpense(locations,$index)"
                             aria-label="Delete {{loc.locationRaw.name}}">
-                            <md-icon md-svg-icon="delete"></md-icon>
+                            <md-icon wt-icon="delete"></md-icon>
                         </md-button>
                         <md-button class="md-icon-button" 
                             ng-click="loc.edit=false"
                             aria-label="Save {{loc.locationRaw.name}}">
-                            <md-icon md-svg-icon="content-save"></md-icon>
+                            <md-icon wt-icon="content-save"></md-icon>
                         </md-button>
                   </div>
                 </md-toolbar>
@@ -73,7 +73,7 @@
                         ngf-resize="{width: 1500, height: 1500, quality: 1.0, type: 'image/jpeg', centerCrop: true}" 
                         accept="image/*" ngf-max-height="5000" ngf-max-size="5MB"
                         ngf-keep="false"  >
-                        <md-icon md-svg-icon="image"></md-icon>
+                        <md-icon wt-icon="image"></md-icon>
                         upload cover image
                         </md-button>
                         <img ngf-src="loc.cover" md-whiteframe=1
@@ -93,15 +93,16 @@
                         md-no-cache="true"
                         md-selected-item="loc.locationRaw"
                         md-search-text="searchText"
-                        md-selected-item-change="markerChange(loc.locationRaw.name,loc.locationRaw.marker, $index)"
+        md-selected-item-change="transportChange(loc, loc.trans_start,
+            {updateLoc: true, map:dialogMap,setMarkerA:true})"
                         md-items="item in search(searchText)"
                         md-item-text="item.name"
                         md-select-on-focus
                         md-floating-label="Location Name"
-                        md-delay="500"
+                        md-delay="300"
                         placeholder="Location Name">
                         <md-item-template>
-                        <md-icon md-svg-icon="{{item.icon}}"></md-icon>
+                        <md-icon wt-icon="{{item.icon}}"></md-icon>
                         <span md-highlight-text="searchText" md-highlight-flags="^i">{{item.description}}</span>
                         </md-item-template>
                         <md-not-found>
@@ -111,9 +112,21 @@
                     </div>
                     <md-input-container class="md-block" flex>
                     <label>Country</label>
-                    <input ng-model="loc.locationRaw.country">
+                    <input ng-model="loc.country">
                     </md-input-container>
-                    <flag country="{{loc.locationRaw.country_code}}" size="32" ng-if="loc.locationRaw.country_code"></flag>
+                <md-input-container>
+                    <label>Code</label>
+                    <md-select ng-model="loc.country_code"
+                    md-on-open="loadCountrycodes()"
+                    md-on-close="destroyCountrycodes(loc)"
+                    >
+                      <md-option ng-repeat="code in countryCodes" value="{{code}}">
+                      <flag country="{{code}}" size="16"></flag>
+                      {{code}}
+                      </md-option>
+                    </md-select>
+                  </md-input-container>
+
                 </div>
                 <div layout="row" flex>
                     <md-input-container class="md-block">
@@ -123,17 +136,21 @@
                 </div>
                 <div layout="row" >
                     <md-datepicker ng-model="loc.start_datetime" 
+                    md-open-on-focus
                     md-placeholder="Start date"
                     ng-change="changeDate(loc)"
                     md-max-date="loc.end_datetime" >
                     </md-datepicker>
                     <md-datepicker ng-model="loc.end_datetime"
+                    md-open-on-focus
                     md-placeholder="End date"
                     ng-change="changeDate(loc)"
                     md-min-date="loc.start_datetime" >
                     </md-datepicker>
                 </div>
+                <!-- fellow traveler -->
                 <h2 class="md-title"> Fellow-travelers </h2>
+                <!--
                 <md-contact-chips
                 ng-model="loc.fellow_travelers"
                 md-contacts="queryFellowTravelerSearch($query)"
@@ -143,40 +160,83 @@
                 md-require-match="true"
                 md-highlight-flags="i"
                 filter-selected="true"
-                placeholder="fellow traveler +"
+                placeholder="fellow traveler+"
                 secondary-placeholder="+"
                 ng-click='fellowTravelFocus($event,loc.fellow_travelers)'
-                ng-blur="editUser=false;"
+                ng-blur="fellowTravelerChanged(loc.fellow_travelers)"
                 >
                 </md-contact-chips>
+                -->
+        <!--
+        md-separator-keys="customKeys"
+        -->
+         <md-chips flex class="md-contact-chips"
+            ng-model="loc.fellow_travelers"
+            md-autocomplete-snap
+            md-require-match="true"
+            md-highlight-flags="i"
+            md-on-select='fellowTravelerFocus($chip,loc.fellow_travelers)'
+            md-on-add="fellowTravelerChanged($chip,loc.fellow_travelers)"
+            >
+          <md-autocomplete
+              md-search-text="searchText"
+              md-items="item in queryFellowTravelerSearch(searchText)"
+              md-item-text="item.name"
+              md-require-match="true"
+              placeholder="+"
+              >
+
+            <div class="md-contact-suggestion">            
+                <img ng-src="{{item.avatar_url}}" alt="{{item.name}}" 
+                        ng-if="item.avatar_url" class="md-contact-avatar"/>
+                <md-icon ng-if="item.new" wt-icon="new-box"class="md-contact-avatar" style="margin-bottom:40px;"></md-icon>
+                <span class="md-contact-name" md-highlight-text="searchText" md-highlight-flags="i">
+                    {{item.name}} 
+                </span>
+            </div>
+          </md-autocomplete>
+            <md-chip-template>
+                <div class="md-contact-avatar">
+                    <img ng-src="{{$chip.avatar_url}}" alt="{{$chip.name}}" ng-if="$chip.avatar_url" />
+                </div>
+                <div class="md-contact-name">
+                    {{$chip.name}}
+                </div>
+            </md-chip-template>
+                <button md-chip-remove class="_md-chip-remove" >
+            <md-icon wt-icon="close"></md-icon>
+          </button>
+        </md-chips>
+
+
                 <!-- image suggestions -->
-                <div layout="row">
-                    <img  ng-repeat="img in imageSuggestions[loc.fellow_travelers[editUserIndex].name]"
+                <div layout="row" layout-wrap>
+                    <img  ng-repeat="img in imageSuggestions[selectedTraveler.name] | limitTo: 21"
                         src="{{img.url}}" 
                         class="wt-user-image-suggestion"
-                        ng-click="loc.fellow_travelers[editUserIndex].avatar_url = img.url"
+                        ng-click="selectedTraveler.avatar_url = img.url"
                     ></img>
                 </div>
                 <!-- FELLOW TRAVELER EDIT -->
-                <div ng-if="editUser && loc.fellow_travelers[editUserIndex].name">
+                <div ng-if="editUser && selectedTraveler.name">
                     <div layout="row">
                     <!-- AVATAR -->
                         <!-- upload -->
                         <md-button class="md-icon-button" aria-label="Upload avatar"
-                        ngf-select="uploadAvatar(avatar, loc.fellow_travelers[editUserIndex])" ng-model="avatar" 
+                        ngf-select="uploadAvatar(avatar, selectedTraveler)" ng-model="avatar" 
                         ngf-resize="{width: 300, height: 300, quality: 1.0, type: 'image/jpeg', centerCrop: true}" 
                         accept="image/*" ngf-max-height="5000" ngf-max-size="5MB"
                         ngf-keep="false"  >
-                        <md-icon md-svg-icon="upload"></md-icon>
+                        <md-icon wt-icon="upload"></md-icon>
                             <md-tooltip md-direction="bottom">
                               Upload a new avatar
                             </md-tooltip>
                         </md-button>
                         <!-- get social suggestions -->
                         <md-button class="md-icon-button"
-                              ng-click="loadUserImages(loc.fellow_travelers[editUserIndex].name)"
+                              ng-click="loadUserImages(selectedTraveler.name)"
                               aria-label="Load image suggestions">
-                          <md-icon md-svg-icon="cloud-sync"></md-icon>
+                          <md-icon wt-icon="cloud-sync"></md-icon>
                             <md-tooltip md-direction="bottom">
                               Get avatar suggestions
                             </md-tooltip>
@@ -185,15 +245,15 @@
                     <div layout="row">
                         <md-input-container>
                         <label>Name</label>
-                        <input ng-model="loc.fellow_travelers[editUserIndex].name">
+                        <input ng-model="selectedTraveler.name">
                         </md-input-container>
                         <md-input-container>
                         <label>E-Mail</label>
-                        <input ng-model="loc.fellow_travelers[editUserIndex].email">
+                        <input ng-model="selectedTraveler.email">
                         </md-input-container>
                         <!--<md-input-container>
                         <label>Avatar Url</label>
-                        <input ng-model="loc.fellow_travelers[editUserIndex].avatar_url">
+                        <input ng-model="selectedTraveler.avatar_url">
                         </md-input-container>-->
                     </div>
                 </div>
@@ -206,35 +266,37 @@
                 <div  ng-repeat="expense in loc.expenses" layout="column" >
                     <div layout="row" >
                         <md-input-container style="max-width=100px;">
-                        <md-icon md-svg-icon="pound"></md-icon>
-                        <input ng-model="expense.amount" type="number" step="0.01"
+                        <md-icon wt-icon="pound"></md-icon>
+                        <input ng-model="expense.amount" type="number" step="5"
                         ng-change="newExpense(loc.expenses)"
                         ng-blur="blurExpense(loc.expenses,$index)">
                         </md-input-container>
                         <md-menu >
+                        <div>
+                        <md-icon wt-icon="{{expense.type.icon_name}}" ng-if="expense.type.icon_name" ng-click="$mdOpenMenu($event)"></md-icon>
                         <md-button aria-label="Chose expense type" class="md-icon-button" ng-click="$mdOpenMenu($event)">
-                        <md-icon md-svg-icon="{{expense.type.icon_name}}" ng-if="expense.type.icon_name"></md-icon>
-                        <md-icon md-svg-icon="menu-down" ng-if="!expense.type.icon_name"></md-icon>
+                        <md-icon wt-icon="menu-down" style="margin-right:-18px;"></md-icon> 
                         </md-button>
-                        </md-menu-content>
+                    </div>
+                    <!--    </md-menu-content>-->
                         <md-menu-content width="4">
                         <md-menu-item ng-repeat="type in expenseTypes">
                         <md-button ng-click="expense.type = type"> <span md-menu-align-target>
-                            <md-icon md-svg-icon="{{type.icon_name}}" ng-if="type.icon_name"></md-icon>
+                            <md-icon wt-icon="{{type.icon_name}}" ng-if="type.icon_name"></md-icon>
                         </span> {{type.name}} </md-button>
                         </md-menu-item>
                         </md-menu-content>
                         </md-menu>
 
                         <md-button aria-label="Add note" class="md-icon-button" ng-click="expense.showNote=true" ng-if="!expense.showNote">
-                        <md-icon md-svg-icon="message-plus" ></md-icon>
+                        <md-icon wt-icon="message-plus" ></md-icon>
                         </md-button>
                         <md-button aria-label="Remove note" class="md-icon-button" ng-click="expense.showNote=false;expense.note = ''" ng-if="expense.showNote">
-                        <md-icon md-svg-icon="message-alert" ></md-icon>
+                        <md-icon wt-icon="message-alert" ></md-icon>
                         </md-button>
                         <md-button class="md-icon-button md-warn" aria-label="Remove"
                         ng-click="removeExpense(loc.expenses,$index)">
-                        <md-icon md-svg-icon="delete"></md-icon>
+                        <md-icon wt-icon="delete"></md-icon>
                         </md-button>
                     </div>
 
@@ -250,24 +312,26 @@
                     <span flex></span>
                     <span class="md-body-1" ng-if="$last">
                     last location
-                    <md-checkbox ng-model="loc.last" aria-label="last location">
+                    <md-checkbox ng-model="loc.last" aria-label="last location"
+                        ng-click="transportChange(loc, loc.trans_end, {map:dialogMap})">
                     </span>
                     </md-checkbox>
                 </h2>
-                <div ng-if="!loc.locationRaw.marker">
+                <div ng-if="!loc.geo">
                     <p md-class="md-warn"> Set first a location </p>
                 </div>
-                <div ng-if="loc.locationRaw.marker && ($parent.$last && loc.last || !$last)"
-                            ng-repeat="(title, trans) in {Start:loc.trans_to,End:loc.trans_from}">
+                <div ng-if="loc.geo&& ($parent.$last && loc.last || !$last)"
+                            ng-repeat="(title, trans) in {Start:loc.trans_start,End:loc.trans_end}">
                     <div layout="row">
                         <!-- look for location -->
                         <div ng-controller="LocationAutoController" class="md-block" flex>
                             <md-autocomplete
                             ng-disabled="($parent.$parent.$parent.$last && !loc.last && $last) ||(!$parent.$parent.$parent.$first && $first)"
-                            md-no-cache="true"
+                            md-no-cache="false"
                             md-selected-item="trans.locationRaw"
                             md-search-text="searchText"
-                            md-selected-item-change=""
+        md-selected-item-change="transportChange(loc, trans, 
+                {updateTrans: true, map:dialogMap})"
                             md-items="item in search(searchText)"
                             md-item-text="item.name"
                             md-select-on-focus
@@ -275,7 +339,7 @@
                             md-delay="500"
                             placeholder="{{title}} Location">
                             <md-item-template>
-                            <md-icon md-svg-icon="{{item.icon}}"></md-icon>
+                            <md-icon wt-icon="{{item.icon}}"></md-icon>
                             <span md-highlight-text="searchText" md-highlight-flags="^i">{{item.description}}</span>
                             </md-item-template>
                             <md-not-found>
@@ -286,11 +350,11 @@
                         <!-- select to -->
                         <md-input-container>
                         <label>Type</label>
-                        <md-select ng-model="trans.name" style="width:150px;" >
-                        <md-option ng-repeat="name in transport.listNames" 
-                        value="{{name}}" >
-                        <md-icon md-svg-icon="{{transport.listIcons[$index]}}" ></md-icon>
-                        {{name}}
+                        <md-select ng-model="trans.type" style="width:150px;" >
+                        <md-option ng-repeat="choice in transport.list" 
+                        value="{{choice.type}}" >
+                        <md-icon wt-icon="{{choice.icon}}" ></md-icon>
+                        {{choice.type}}
                         </md-option>
                         </md-select>
                         </md-input-container>
@@ -298,12 +362,12 @@
                         <md-button aria-label="Add note" class="md-icon-button" 
                         ng-click="trans.showNote=true" 
                         ng-if="!trans.showNote">
-                        <md-icon md-svg-icon="message-plus" ></md-icon>
+                        <md-icon wt-icon="message-plus" ></md-icon>
                         </md-button>
                         <md-button aria-label="Remove note" class="md-icon-button"
-                        ng-click="trans.showNote=false;loc.trans_to.note = ''"
+                        ng-click="trans.showNote=false;trans.note = ''"
                         ng-if="trans.showNote">
-                        <md-icon md-svg-icon="message-alert" ></md-icon>
+                        <md-icon wt-icon="message-alert" ></md-icon>
                         </md-button>
                     </div>
 
@@ -326,21 +390,21 @@
                             <span ng-if="!loc.locationRaw">Location {{$index+1}}</span>
                     </span>
                     <span class="md-subhead">
-                        <md-icon md-svg-icon="map"></md-icon>
+                        <md-icon wt-icon="map"></md-icon>
                             <span ng-if="loc.locationRaw.country">{{loc.locationRaw.country}}</span>
                             <span ng-if="!loc.locationRaw.country" class="md-warn">Define country, please.</span>
                     </span>
                     <span  ng-if="loc.start_datetime" class="md-subhead">
-                        <md-icon md-svg-icon="calendar"></md-icon>
+                        <md-icon wt-icon="calendar"></md-icon>
                         <span>{{loc.start_datetime | amUtc | amLocal | amCalendar }}</span>
                         <span ng-if="loc.end_datetime">for <span>{{loc.end_datetime | amAdd : '1' : 'day' | amDifference : loc.start_datetime : 'days' | amDurationFormat : 'days' }}</span></span>
                     </span>
                     <span  ng-if="!loc.start_datetime" class="md-subhead md-warn">
-                        <md-icon md-svg-icon="calendar-plus"></md-icon>
+                        <md-icon wt-icon="calendar-plus"></md-icon>
                         Start date missing.
                     </span>
                     <span class="md-subhead">
-                        <md-icon md-svg-icon="currency-usd"></md-icon>
+                        <md-icon wt-icon="currency-usd"></md-icon>
                         <span  ng-if="loc.expenses.length > 1">
                             Expenses {{sumExpenses(loc.expenses)}} (#{{loc.expenses.length-1}})
                         </span>
@@ -349,24 +413,24 @@
                         </span>
                     </span>
                     <span class="md-subhead">
-                        <md-icon md-svg-icon="account-multiple"></md-icon>
+                        <md-icon wt-icon="account-multiple"></md-icon>
                         <span ng-repeat="user in loc.fellow_travelers | limitTo:2">{{user.name}}<span ng-if="!$last">, </span></span><span ng-if="loc.fellow_travelers.length > 2">, and others.</span>
                     </span>
                     <span class="md-subhead">
-                        <span ng-if="loc.trans_to.name !== 'none'">
+                        <span ng-if="loc.trans_start.type !== 'none'">
                         Came by
-                        <md-icon md-svg-icon="{{transport.listNameKeys[loc.trans_to.name].icon}}"></md-icon>
-                        {{loc.trans_to.name}}
+                        <md-icon wt-icon="{{transport.listTypeKeys[loc.trans_start.type].icon}}"></md-icon>
+                        {{loc.trans_start.type}}
                         </span>
-                        <span ng-if="!loc.trans_from.name && loc.trans_to.name === 'none'">
+                        <span ng-if="!loc.trans_end.type && loc.trans_start.typtype === 'none'">
                             To transport not set
                         </span>
-                        <span ng-if="loc.trans_from.name !== 'none'">
+                        <span ng-if="loc.trans_end.type !== 'none'">
                         / left by
-                        <md-icon md-svg-icon="{{transport.listNameKeys[loc.trans_from.name].icon}}"></md-icon>
-                        {{loc.trans_from.name}}.
+                        <md-icon wt-icon="{{transport.listTypeKeys[loc.trans_end.type].icon}}"></md-icon>
+                        {{loc.trans_end.type}}.
                         </span>
-                        <span ng-if="!loc.trans_from.name && loc.trans_from.name === 'none'">
+                        <span ng-if="!loc.trans_end.type && loc.trans_end.type === 'none'">
                             / from transport not set.
                         </span>
                     </span>
@@ -392,28 +456,28 @@
                         <md-button class="md-icon-button"  ng-if="!$last"
                             ng-click="moveLocation($index,1)"
                             aria-label="Move up {{loc.locationRaw.name}}">
-                            <md-icon md-svg-icon="arrow-down-bold"></md-icon>
+                            <md-icon wt-icon="arrow-down-bold"></md-icon>
                         </md-button>
                         <md-button class="md-icon-button"  ng-if="!$first"
                             ng-click="moveLocation($index,-1)"
                             aria-label="Move down {{loc.locationRaw.name}}">
-                            <md-icon md-svg-icon="arrow-up-bold"></md-icon>
+                            <md-icon wt-icon="arrow-up-bold"></md-icon>
                         </md-button>
                         <span flex></span>
                         <md-button class="md-icon-button" 
                             ng-click="dialogMap.panTo(loc.locationRaw.marker)"
-                            aria-label="Delete {{loc.locationRaw.name}}">
-                            <md-icon md-svg-icon="google-maps"></md-icon>
+                            aria-label="Go to {{loc.locationRaw.name}}">
+                            <md-icon wt-icon="google-maps"></md-icon>
                         </md-button>
                         <md-button class="md-icon-button" 
                             ng-click="removeExpense(locations,$index)"
                             aria-label="Delete {{loc.locationRaw.name}}">
-                            <md-icon md-svg-icon="delete"></md-icon>
+                            <md-icon wt-icon="delete"></md-icon>
                         </md-button>
                         <md-button class="md-icon-button" 
-                            ng-click="editLocation($index)"
+                            ng-click="editLocation(trip,loc,$index)"
                             aria-label="Edit {{loc.locationRaw.name}}">
-                            <md-icon md-svg-icon="pencil"></md-icon>
+                            <md-icon wt-icon="pencil"></md-icon>
                         </md-button>
                 </md-card-actions>
               </md-card>
@@ -426,7 +490,7 @@
     </div>
     </md-dialog-content>
     <md-dialog-actions layout="row">
-    <md-button ng-click="cancel()">
+    <md-button ng-click="cancelTrip()">
     cancel
     </md-button>
     <span flex></span>

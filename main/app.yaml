@@ -30,10 +30,14 @@ handlers:
   static_files: public/humans.txt
   upload: public/humans.txt
 
-- url: /p/(.*\.ttf)
-  static_files: public/\1
-  upload: public/(.*\.ttf)
-  mime_type: font/ttf
+#- url: /p/(.*\.[ttf|eot|svg|woff|woff2])
+#static_files: public/\1
+#upload: public/(.*\.[ttf|eot|svg|woff|woff2])
+#expiration: 1000d
+
+- url: /p/fonts/(.*)
+  static_files: public/dist/fonts/\1
+  upload: public/dist/fonts/(.*)
   expiration: 1000d
 
 - url: /p/(.*\.png)
