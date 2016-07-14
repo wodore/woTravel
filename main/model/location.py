@@ -23,7 +23,7 @@ class Expenses(model.Base):
 
 class Transport(model.Base):
     waypoints = ndb.GeoPtProperty(repeated=True,indexed=False) # lat/long coordinates
-    type = ndb.StringProperty(default='none',required=True, choices=['other','none','plane','boat','car','taxi','train','bus','bike','motobike','foot','hitchhiking'])
+    type = ndb.StringProperty(default='none',required=True, choices=['other','none','plane','boat','car','taxi','train','bus','bike','motorbike','foot','hitchhiking'])
     name = ndb.StringProperty(default='',required=True)
     icon = ndb.StringProperty(default='',required=True)
     note = ndb.StringProperty(default='',required=True)

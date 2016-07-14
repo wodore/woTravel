@@ -11,18 +11,18 @@
 
 <body layout="row" layout-fill>
 <md-sidenav md-is-locked-open="$mdMedia('gt-md')" md-component-id="leftSidenav"
-            ng-include="'/p/modules/core/layout/sidenav.client.view.html'"
             class="md-sidenav-left sidenav-left" md-whiteframe="2">
+            <div class="" ui-view="sideLeft"></div>
 </md-sidenav>
 <div layout="column" role="main" flex>
-    <md-toolbar md-whiteframe="1">
+    <md-toolbar md-whiteframe="1" id="main-toolbar">
         <div ng-controller="HeaderController" ng-include="'/p/modules/core/layout/header.client.view.html'"></div>
     </md-toolbar>
-    <md-content flex md-scroll-y
-                class="md-padding main-content">
+    <md-content flex md-scroll-y layout-fill
+                class="main-content">
         # block content
         # endblock
-        # include 'bit/footer.html'
+        ## include 'bit/footer.html'
     </md-content>
 </div>
 # include 'bit/script.html'

@@ -26,24 +26,28 @@
             self = this;
             var o = typeof options !== 'undefined' ? options : {};
             _.defaults(o,{page_size:20,
-                          pages:1000})
+                          pages:1000,
+                          cursor:null })
             var deferred = $q.defer();
             self.loading = true;
             Restangular.all('fellow_travelers').getList(
                     _.merge({size:o.page_size,
-                    cursor : _.get(self.meta,['nextCursor'],null)},
+                    cursor : o.cursor},
                     defaultArguments)
                 ).then(function(travelers){
-                    self.meta = travelers.meta;
-                    if (o.pages > 0 && _.get(self.meta,'more')){
+                    //self.meta = travelers.meta;
+                    if (o.pages > 0 && _.get(travelers,'meta.more')){
                         self.loadAll(_.merge({
-                            page_size:o.page_size,pages:o.pages-1},
+                            page_size:o.page_size,
+                            pages:o.pages-1,
+                            cursor: travelers.meta.nextCursor},
                                     defaultArguments)).then(function(){
-                            deferred.resolve(_.get(self.meta,'more',true));
+                            deferred.resolve(_.get(travelers,'meta.more'));
                         });
                     } else { // TODO is this correct? 
                             //Is the following for executed for the last batch?
-                        deferred.resolve(_.get(self.meta,'more',false));
+                        $log.debug("[wtFellowTravelers:loadAll] NO more travelers (more=false).")
+                        deferred.resolve(_.get(travelers,'meta.more',false));
                     }
                     // prepare and update data
                     for (var i = 0; i < travelers.length; i++) { 
@@ -66,17 +70,18 @@
             } else if (_.isString(key)){
                 var trav = _.get(self.travelers,key,false);
                 if (trav === false ) {
-                Restangular.all('fellow_travelers').one(key).get()
-                    .then(function(traveler){
-                        $log.debug("[wtFellowTravelers:getAsync] loaded new travelers");
-                        self.travelers[key] = traveler;
-                        deferred.resolve(traveler);
-                    },function(msg){
-                        $log.error("[wtFellowTravelers:getAsync] "+msg);
-                        deferred.reject(msg);
-                    });
+                    $log.debug("[wtFellowTravelers:getAsync] load travelers from server:" + key);
+                    Restangular.all('fellow_travelers').one(key).get()
+                        .then(function(traveler){
+                            $log.debug("[wtFellowTravelers:getAsync] loaded new travelers: "+traveler.name+" ("+traveler.key+")");
+                            self.travelers[key] = traveler;
+                            deferred.resolve(traveler);
+                        },function(msg){
+                            $log.error("[wtFellowTravelers:getAsync] "+msg);
+                            deferred.reject(msg);
+                        });
                 } else {
-                    $log.debug("[wtFellowTravelers:getAsync] already exists");
+                    //$log.debug("[wtFellowTravelers:getAsync] already exists: "+trav.name+" ("+trav.key+")");
                     deferred.resolve(trav)
                 }
             }

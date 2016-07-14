@@ -3,14 +3,16 @@
   <!--
           defaults="defaults" url-hash-center="yes" 
           -->
-  <leaflet  style="z-index:1;" id="mainMap"
-          height="600px" lf-center="center"  markers="markers"
+  <div layout-fill wt-height="#main-toolbar">
+  <leaflet  style="z-index:1;" id="mainMap" 
+          height="100%" lf-center="center"  markers="markers"
           tiles="tiles" layers="layers"  paths="paths"
           zoom="zoom"  defaults="defaults"
           event-broadcast="events" watch-options="watchOptions"
           markers-watch-options="watchOptions.markers"
           paths-watch-options="watchOptions.paths"
           flex ></leaflet>
+      </div>
 
   <md-button class="md-fab wt-floating-button wt-floating-bottom-right" 
   aria-label="Add new trip"

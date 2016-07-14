@@ -115,17 +115,18 @@ class User(model.Base):
         traveler = getattr(self,'fellow_traveler',None)
         if not traveler:
             key = future.get_result()
-            db = model.FellowTraveler(name=self.name,
+            db = model.FellowTraveler(name=self.username,
                     email=self.email,
                     avatar_url=self.avatar_url,
+                    parent=key,
                     added_by=key)
             self.fellow_traveler = db.put()
-            self.put_async()
+            self.put()
         else:
             db = traveler.get()
             if not hasattr(db,'avatar_url') and hasattr(self,'avatar_url'):
                 db.avatar_url = self.avatar_url
-                db.put_async()
+                db.put()
 
 
     @classmethod

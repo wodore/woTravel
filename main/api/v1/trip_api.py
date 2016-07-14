@@ -15,7 +15,7 @@ from api.helpers import ArgumentValidator, make_list_response,\
         make_empty_ok_response, default_parser, to_compare_date
 from flask import request, g
 from pydash import _
-from api.decorators import model_by_key, user_by_username, authorization_required, admin_required
+from api.decorators import model_by_key, user_by_username, authorization_required, admin_required, login_required
 
 import datetime
 
@@ -108,9 +108,10 @@ class TripsByKeyAPI(Resource):
         return g.model_db.to_dict(include=properties)
 
 
-    @admin_required
+    #@admin_required
     #@ndb.transactional(xg=True)
     #@model_by_key
+    @login_required
     def put(self, key): # TODO check and use key if given
         """Updates expense type's properties"""
         update_properties = ['name', 'description', 'avatar_url', 'locations','key']
@@ -154,9 +155,10 @@ class TripsByKeyAPI(Resource):
             if loc['geo']:
                 loc['geo'] =  ndb.GeoPt(lat=loc['geo']['lat'],lon=loc['geo']['lng'])
             print "SAVE EXPENSES"
-            loc['expenses'] = [{"amount":float(e.get('amount',0)),
-                "note":e.get('note',""),
-                "type":ndb.Key(urlsafe=e['type']) if e.get('type',False) else None} for e in loc['expenses']]
+            if loc['expenses']:
+                loc['expenses'] = [{"amount":float(e.get('amount',0) or 0),
+                    "note":e.get('note',""),
+                    "type":ndb.Key(urlsafe=e['type']) if e.get('type',False) else None} for e in loc['expenses']]
             print loc['expenses']
             if 'trans_start' in loc:
                 loc['trans_start']['waypoints'] = [ndb.GeoPt(lat=m.get('lat'),lon=m.get('lng')) for m in loc['trans_start'].get('waypoints',[])]

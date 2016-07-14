@@ -18,9 +18,12 @@
             //$log.debug("Paths:")
             //$log.debug($scope.paths)
         });
-        $scope.markers = mapTrips.markers
-        $scope.paths = mapTrips.tripPaths
-        $scope.trips = mapTrips.trips
+        $scope.markers = mapTrips.markers;
+        $scope.paths = mapTrips.tripPaths;
+        $scope.trips = mapTrips.trips;
+        $scope.countries = mapTrips.countries;
+        $scope.fellowTravelers = mapTrips.fellow_travelers;
+        //$scope.fellowTravelers = wtFellowTravelers.travelers;
         leafletData.getMap('mainMap').then(function(map) {
             $scope.mainMap = map;
             mapFn.setMap('main', map);
@@ -148,41 +151,48 @@
                     _.get(trans,'geo',{})));
             }
 
-            var markerA = _.get(loc,['geo'],false);
-            var markerB = _.get(trans,['geo'],false);
-            if ( o.setMarkerA  && markerA  !== false){
+            var markerA = _.get(loc,['geo'],null);
+            var markerB = _.get(trans,['geo'],null);
+            if ( o.setMarkerA  && markerA  !== null){
                 $scope.trip.markers[mapFn.nameFromMarker(markerA)] = markerA;
             }
-            if ( o.setMarkerB  && markerB  !== false){
+            if ( o.setMarkerB  && markerB  !== null){
                 $scope.trip.markers[mapFn.nameFromMarker(markerB)] = markerB;
             }
-            if ( markerA === false || markerB === false){
+            if ( markerA === null || markerB === null){
                 // nothing happens
                 $log.warn("[transportChange] one of the marker is not set");
                 $log.warn(markerA);
                 $log.warn(markerB);
-                if (_.get(o,'map') && markerA !== false){
+                if (_.get(o,'map') && markerA !== null){
                     o.map.panTo(markerA);
                 }
-                if (_.get(o,'map') && markerB !== false){
+                if (_.get(o,'map') && markerB !== null){
                     o.map.panTo(markerB);
                 }
                 return false
             } else {
+                $log.warn("[transportChange] add marker polyline");
                 var markers = [markerA,markerB];
+                $log.warn(markers);
                 var poly= L.polyline(markers)
+                $log.warn(poly);
+                $log.warn(_.get(trans,['poly'],false));
                 if (_.get(o,'map')){
-                    if(_.get(trans,['poly'],false) !== false){
-                        o.map.removeLayer(_.get(trans,['poly']));
-                        $log.debug("[transportChange] remove old poly");
-                        $log.debug(trans.poly);
-                    }  
-                    poly.addTo(o.map);
-                    poly.enableEdit();
+                    if(_.get(trans,['poly'],false) === false){
+                        _.set(trans,['waypoints'],poly._latlngs);
+                        _.set(trans,['poly'],poly);
+                        poly.addTo(o.map);
+                        poly.enableEdit();
+                        //o.map.removeLayer(_.get(trans,['poly']));
+                        //$log.debug("[transportChange] remove old poly");
+                        //$log.debug(trans.poly);
+                    } else {
+                        //poly.enableEdit();
+                        _.assignDelete(trans.poly,poly);
+                    }
                     mapFn.fitMarkers(markers,o.map);
                 }
-                _.set(trans,['waypoints'],poly._latlngs);
-                _.set(trans,['poly'],poly);
             }
         }
         $scope.loadCountrycodes = function(){
@@ -302,6 +312,7 @@
                         //.controller('mdChips').selectedChip;
             $scope.editUser = true;
             $scope.selectedTraveler = chip;
+            $scope.selectedTraveler.new = true;
         }
 
         var oldTravelers = []
@@ -324,7 +335,6 @@
             } else {
                 $log.debug("No update")
                 $log.debug(chip)
-
             }
         }
 
@@ -370,12 +380,11 @@
                 //newLocs[i].expenses = _.cloneDeep(loc.expenses);
                 newLocs[i].expenses = []
                 _.forEach(loc.expenses,function(exp,expKey,exps){
-                    var expNew = _.pick(exp,['name','note','amount']);
+                    var expNew = _.pick(exp,['name','note','amount','type']);
                     if (expNew.amount !== ""){
                         expNew.type = _.get(expNew,['type','key'],null);
                         newLocs[i].expenses.push(expNew);
                     }
-
                 });
 
                 // TODO
@@ -430,14 +439,15 @@
                     $mdDialog.hide();
                     mapTrips.update().then(function(){
                         $log.debug("[saveTrip]: trip update from server, remove 'new' from trips");
-                        _.remove(mapTrips.trips.data['new'])
+                        delete mapTrips.trips.data.new;
                     });
                 });
         }
 
 
         $scope.cancelTrip = function(){
-            delete $scope.trip;
+           // delete $scope.trip;
+            delete mapTrips.trips.data.new;
             $mdDialog.hide();
         }
 

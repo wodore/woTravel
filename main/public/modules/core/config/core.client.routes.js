@@ -8,8 +8,15 @@
         $stateProvider
             .state('home', {
                 url         : '/',
+                views    : {
+                    '' : {
                 controller  : 'HomeController',
                 templateUrl : '/p/modules/core/home/home.client.view.html'
+                    } ,
+                    'sideLeft' : {
+                templateUrl : '/p/modules/core/layout/sidenav.client.view.html'
+                    }
+                }
             })
             .state('feedback', {
                 url         : '/feedback',

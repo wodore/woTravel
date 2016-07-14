@@ -53,11 +53,14 @@ class UserByUsernameAPI(Resource):
             traveler = traveler_key.get()
             future=False
         else:
-            traveler = model.FellowTraveler(name=g.user_db.name,
+            traveler = model.FellowTraveler.create_or_update(
+                    name=g.user_db.name,
                     email=g.user_db.email,
                     avatar_url=g.user_db.avatar_url,
+                    parent=g.user_db.key,
                     added_by=g.user_db.key)
             traveler_key =traveler.put()
+            traveler.key = traveler_key
             g.user_db.fellow_traveler = traveler_key
             future = g.user_db.put_async()
         db_dict = g.user_db.to_dict(include=properties)

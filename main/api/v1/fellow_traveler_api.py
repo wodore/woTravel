@@ -33,7 +33,8 @@ class FellowTravelerAPI(Resource):
         compare ,date = to_compare_date(args.newer, args.older, args.orderBy)
 
         query = model.FellowTraveler.qry(order_by_date=args.orderBy,  \
-            compare_date = compare, date = date, time_offset=args.offset)
+            compare_date = compare, date = date, time_offset=args.offset,
+            added_by=auth.current_user_key())
         dbs_future = query.fetch_page_async(args.size, start_cursor=args.cursor)
 
         total_count_future = query.count_async(keys_only=True) if args.total else False
@@ -46,7 +47,7 @@ class FellowTravelerAPI(Resource):
 @API.resource('/api/v1/fellow_travelers/<string:key>')
 class FellowTravelerByKeyAPI(Resource):
     @model_by_key
-    @admin_required
+    @login_required
     def get(self, key):
         """Loads expense type's properties."""
         if auth.is_admin():
@@ -66,7 +67,7 @@ class FellowTravelerByKeyAPI(Resource):
             new_data['added_by'] = ndb.Key(urlsafe=new_data['added_by'])
         else:
             new_data['added_by'] = auth.current_user_key()
-        key = model.FellowTraveler.create_or_update(urlsafe=True, **new_data)
+        key = model.FellowTraveler.create_or_update(urlsafe=True, parent=auth.current_user_key(), **new_data)
         properties = model.FellowTraveler.get_public_properties()
         return key.get().to_dict(include=properties)
 

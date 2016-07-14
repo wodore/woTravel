@@ -1,39 +1,188 @@
 <!--<div ng-controller="MapSidenavController">-->
 <div>
-
-    <div ng-repeat="trip in trips.data">
+    <md-tabs md-dynamic-height md-border-bottom>
+    <!-- TRIP overview list -->
+    <md-tab label="trips">
+    <md-tab-label>
+        <md-icon wt-icon='sitemap'></md-icon>
+    </md-tab-label>
+    <md-tab-body>
+    <div ng-repeat="trip in trips.data" layout-fill>
         <section>
-        <md-subheader class="md-primary">{{trip.name}}
-                        <md-button class="md-icon-button" 
-                            ng-click="mapFn.fitMarkers(trip.markers,mainMap)"
-                            aria-label="Fit trip {{loc.locationRaw.name}}">
-                            <md-icon wt-icon="google-maps"></md-icon>
-                        </md-button>
-                        <md-button class="md-icon-button" 
-                            ng-click="addTripDialog($event,trip)"
-                            aria-label="View trip {{trip.name}}">
-                            <md-icon wt-icon="eye"></md-icon>
-                        </md-button>
-        </md-subheader>
-          <md-list layout-padding>
+            <md-subheader class="md-primary">{{trip.name}}
+            <md-button class="md-icon-button" 
+            ng-click="mapFn.fitMarkers(trip.markers,mainMap)"
+            aria-label="Fit trip {{loc.locationRaw.name}}">
+            <md-icon wt-icon="google-maps"></md-icon>
+            </md-button>
+            <md-button class="md-icon-button" 
+            ng-click="addTripDialog($event,trip)"
+            aria-label="View trip {{trip.name}}">
+            <md-icon wt-icon="eye"></md-icon>
+            </md-button>
+            </md-subheader>
+            <md-list layout-padding>
             <md-list-item class="md-3-line" ng-repeat="loc in trip.locations">
-                <img ng-src="{{loc.avatar_url}}" class="md-avatar" alt="{{loc.name}}" ng-if="loc.avatar_url">
-                <div class="md-list-item-text">
-                  <h3>{{loc.name}}
-                        <md-button class="md-icon-button" 
-                            ng-click="mainMap.panTo(loc.locationRaw.marker)"
-                            aria-label="Move to marker {{loc.locationRaw.name}}">
-                            <md-icon wt-icon="google-maps"></md-icon>
-                        </md-button>
-                  </h3>
-                  <h4>{{loc.country}}</h4>
-                  <p>
-                        <md-icon wt-icon="account-multiple"></md-icon>
-                        <span ng-repeat="user in loc.fellow_travelers | limitTo:2">{{user.name}}<span ng-if="!$last">, </span></span><span ng-if="loc.fellow_travelers.length > 2">, and others.</span>
-                  </p>
-                </div>
+            <img ng-src="{{loc.avatar_url}}" class="md-avatar" alt="{{loc.name}}" ng-if="loc.avatar_url">
+            <div class="md-list-item-text">
+                <h3>{{loc.name}}
+                    <md-button class="md-icon-button" 
+                    ng-click="mainMap.panTo(loc.locationRaw.marker)"
+                    aria-label="Move to marker {{loc.locationRaw.name}}">
+                    <md-icon wt-icon="google-maps"></md-icon>
+                    </md-button>
+                </h3>
+                <h4>{{loc.country}}</h4>
+                <p>
+                <md-icon wt-icon="account-multiple"></md-icon>
+                <span ng-repeat="user in loc.fellow_travelers | limitTo:2">{{user.name}}<span ng-if="!$last">, </span></span><span ng-if="loc.fellow_travelers.length > 2">, and others.</span>
+                </p>
+            </div>
             </md-list-item>
-          </md-list>
-    </section>
+            </md-list>
+        </section>
     </div>
+    <!-- TRIP overview list end -->
+    </md-tab-body>
+    </md-tab>
+
+
+    <!-- TRIP name list -->
+    <md-tab label="trips">
+    <md-tab-label>
+        <md-icon wt-icon='vector-polyline'></md-icon>
+    </md-tab-label>
+    <md-tab-body>
+<md-list ng-cloak>
+ <md-list-item ng-repeat="trip in trips.data" ng-click="" class="md-2-line">
+    <md-icon wt-icon="map-marker-radius" ng-if="!trip.avatar_url" class="md-avatar-icon"></md-icon>
+    <img alt="{{ trip.name }}" ng-src="{{ trip.avatar_url }}" class="md-avatar" ng-if="trip.avatar_url" />
+        <div class="md-list-item-text">
+            <h3> {{ trip.name }} </h3>
+            <p> 
+                <span>{{trip.start_datetime | amUtc | amLocal | amCalendar }}</span>
+                <span ng-if="trip.end_datetime">for <span>{{trip.end_datetime | amAdd : '1' : 'day' | amDifference : trip.start_datetime : 'days' | amDurationFormat : 'days' }}</span></span>
+             </p>
+          </div>
+    <md-checkbox class="md-secondary" ng-model="loc.selected"></md-checkbox>
+    <!--<md-icon class="md-secondary" ng-click="doSecondaryAction($event)" aria-label="Chat" wt-icon="google-maps"></md-icon>-->
+  </md-list-item>
+</md-list>
+    </md-tab-body>
+    </md-tab>
+
+    <!-- TRIP name list END -->
+
+
+    <!-- Country list -->
+    <md-tab label="countries">
+    <md-tab-label>
+        <md-icon wt-icon='flag'></md-icon>
+    </md-tab-label>
+    <md-tab-body>
+<md-list ng-cloak>
+ <md-list-item ng-repeat="country in countries" ng-click="" class="md-2-line">
+    <flag country="{{country.code}}" size="32" class="md-avatar-icon"></flag>
+        <div class="md-list-item-text">
+            <h3> {{ country.name }} </h3>
+            <p> 
+                <span ng-if="country.duration"><span>{{country.duration | amDurationFormat : 'days' }}</span></span>
+                <span>({{country.locationsNo}} location<span ng-if="country.locationsNo > 1">s</span> in {{country.tripsNo}} trip<span ng-if="country.tripsNo > 1">s</span>)
+                </span>
+             </p>
+          </div>
+    <md-checkbox class="md-secondary" ng-model="country.selected"></md-checkbox>
+    <!--<md-icon class="md-secondary" ng-click="doSecondaryAction($event)" aria-label="Chat" wt-icon="google-maps"></md-icon>-->
+  </md-list-item>
+</md-list>
+    </md-tab-body>
+    </md-tab>
+
+    <!-- LOCATION list END -->
+
+
+
+
+    <!-- LOCATION list -->
+    <md-tab label="locations">
+    <md-tab-label>
+        <md-icon wt-icon='city'></md-icon>
+    </md-tab-label>
+    <md-tab-body>
+<md-list ng-cloak>
+    <div ng-repeat="trip in trips.data" layout-fill>
+        <div layout-fill>
+ <md-list-item ng-repeat="loc in trip.locations" ng-click="" class="md-2-line">
+    <md-icon wt-icon="map-marker-radius" ng-if="!loc.avatar_url" class="md-avatar-icon"></md-icon>
+    <img alt="{{ loc.name }}" ng-src="{{ loc.avatar_url }}" class="md-avatar" ng-if="loc.avatar_url" />
+        <div class="md-list-item-text">
+            <h3> {{ loc.name }} </h3>
+            <p> 
+                <span>{{loc.start_datetime | amUtc | amLocal | amCalendar }}</span>
+                <span ng-if="loc.end_datetime">for <span>{{loc.end_datetime | amAdd : '1' : 'day' | amDifference : loc.start_datetime : 'days' | amDurationFormat : 'days' }}</span></span>
+             </p>
+          </div>
+    <md-checkbox class="md-secondary" ng-model="loc.selected"></md-checkbox>
+    <!--<md-icon class="md-secondary" ng-click="doSecondaryAction($event)" aria-label="Chat" wt-icon="google-maps"></md-icon>-->
+  </md-list-item>
+        </div>
+    </div>
+</md-list>
+    </md-tab-body>
+    </md-tab>
+
+    <!-- LOCATION list END -->
+
+    <!-- FELLOW TRAVELER list -->
+    <md-tab label="fellow travelers">
+    <md-tab-label>
+        <md-icon wt-icon='account-multiple'></md-icon>
+    </md-tab-label>
+    <md-tab-body>
+<md-list ng-cloak>
+ <md-list-item ng-repeat="traveler in fellowTravelers" ng-click="" class="md-2-line">
+    <md-icon wt-icon="account" ng-if="!traveler.avatar_url" class="md-avatar-icon"></md-icon>
+    <img alt="{{ traveler.name }}" ng-src="{{ traveler.avatar_url }}" class="md-avatar" ng-if="traveler.avatar_url" />
+        <div class="md-list-item-text">
+            <h3> {{ traveler.name }} </h3>
+            <p> 
+                <span ng-if="traveler.duration"><span>{{traveler.duration | amDurationFormat : 'days' }}</span></span>
+                <span>({{traveler.locationsNo}} location<span ng-if="traveler.locationsNo > 1">s</span> in {{traveler.tripsNo}} trip<span ng-if="traveler.tripsNo > 1">s</span>)
+                </span>
+             </p>
+        </div>
+    <md-checkbox class="md-secondary" ng-model="traveler.selected"></md-checkbox>
+    <!--<md-icon class="md-secondary" ng-click="doSecondaryAction($event)" aria-label="Chat" wt-icon="google-maps"></md-icon>-->
+  </md-list-item>
+</md-list>
+    </md-tab-body>
+    </md-tab>
+    <!-- FELLOW TRAVELER list  end-->
+
+
+    <!-- FELLOW TRAVELER list -->
+    <md-tab label="dates">
+    <md-tab-label>
+        <md-icon wt-icon='calendar'></md-icon>
+    </md-tab-label>
+    <md-tab-body>
+    <md-subheader  class="md-primary" >
+    <md-checkbox ng-model="datesFrom.selected"></md-checkbox>
+    From
+    <span>{{fromDate | amUtc | amLocal | amCalendar }}</span>
+    </md-subheader>
+<md-calendar ng-model="fromDate"></md-calendar>
+ <md-divider></md-divider>
+    <md-subheader class="md-primary">
+    <md-checkbox ng-model="datesTo.selected"></md-checkbox>
+    To
+    <span>{{toDate | amUtc | amLocal | amCalendar }}</span>
+    </md-subheader>
+<md-calendar ng-model="toDate"></md-calendar>
+</md-list>
+    </md-tab-body>
+    </md-tab>
+
+
+    </md-tabs>
 </div>

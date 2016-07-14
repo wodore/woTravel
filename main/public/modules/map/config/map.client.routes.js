@@ -11,7 +11,7 @@
                         controller  : 'mapController',
                         templateUrl : '/p/modules/map/layout/map.client.view.html'
                     },
-                    'side' : {
+                    'sideLeft' : {
                         controller  : 'mapController',
                         templateUrl : '/p/modules/map/layout/sidenav.map.view.html'
                     }

@@ -27,6 +27,8 @@
          */
         this.trips = {data:{}}; 
         this.locations = {};  // a list with a reference to each location
+        this.countries = {};  // a list with all countries (name, code, duration, tripsNo, locationsNo)
+        this.fellow_travelers = {};  // a list with all fellow travelers (name, duration, tripsNo, locationsNo)
         this.tripPaths = {};  // paths for all trips
 
         /*****************************************************************
@@ -259,6 +261,7 @@
             }
             var prevMarker = false;
             _.forEach(locations,function(val,ind,col){
+                self.setCountry(val);
                 // set marker options
                 if (_.get(val,'geo',false)){
                     //val.lat = _.get(val,'geo.lat',undefined);
@@ -268,9 +271,12 @@
                     _.set(val,'trans_start.locationRaw.name',
                         _.get(val,"trans_start.name",""));
                     _.set(val,'trans_end.waypoints',
-                        _.get(val,"trans_end.waypoints.name",[]));
-                    _.set(val,'trans_end.locationRaw',
+                        _.get(val,"trans_end.waypoints",[]));
+                    _.set(val,'trans_end.locationRaw.name',
                         _.get(val,"trans_end.name",""));
+                    if (!_.isEmpty(_.get(val,"trans_end.geo",[]))){
+                        _.set(val,'last',true);
+                    }
                     val.message = val.name+" ("+trip.name+")";
                     //val.marker = val.geo;
                     trip.markers.push(val.geo);
@@ -302,18 +308,17 @@
                         } else {
                             var line = val.trans_start.waypoints;
                         }
-                        self.tripPaths[mainID+"P"]=_.defaults(
+                        self.tripPaths[mainID+"transStart"]=_.defaults(
                                 {latlngs: line, 
                                 // TODO replace with val.waypoints
                                     type: "polyline",
                                     message : style
                                 },wtTransport.getStyle(style))
                     }
-                    if (_.has(val,'trans_end.waypoints')){
+                    if (!_.isEmpty(_.get(val,'trans_end.waypoints',[]))){
                         var style = _.get(val,"trans_end.type",'other')
-                        self.tripPaths[mainID+"Pfrom"]=_.defaults(
-                                {latlngs: _.get(val,'trans_end.waypoints'), 
-                                // TODO replace with val.waypoints
+                        self.tripPaths[mainID+"transEnd"]=_.defaults(
+                                {latlngs: val.trans_end.waypoints, 
                                     type: "polyline",
                                     message : style
                                 },wtTransport.getStyle(style))
@@ -343,6 +348,7 @@
                     _.forEach(val.fellow_travelers,function(trav,key){
                         wtFellowTravelers.getAsync(trav).then(function(res){
                                 val.fellow_travelers[key] = res;
+                                self.setFellowTraveler(val,res);
                         });
                     });
 
@@ -352,6 +358,47 @@
             _.merge(self.tripPaths,markerCircles);
         }
 
+        /*****************************************************************
+         * Add a country to the country list from a location.
+         * Parameters:
+         * - loc: location
+         * - options     : {}
+         *   */
+        this.setCountry = function(loc) {
+            var country = _.get(self.countries,loc.country,{duration:0,
+                    trips:[], locations:[]});
+            country.duration = (parseInt(country.duration) + parseInt(loc.duration));
+            country.trips.push(loc.trip);
+            country.trips = _.uniq(country.trips);
+            country.tripsNo = country.trips.length;
+            country.locations.push(loc.name);
+            country.locations = _.uniq(country.locations);
+            country.locationsNo = country.locations.length;
+            country.name = _.get(country,'name',_.get(loc,'country'));
+            country.code = _.get(country,'code',_.get(loc,'country_code'));
+            _.set(self.countries,country.name,country);
+        }
+
+        /*****************************************************************
+         * Add a fellow traveler to the list from a location.
+         * Parameters:
+         * - loc: location
+         * - options     : {}
+         *   */
+        this.setFellowTraveler = function(loc,fellow) {
+            var traveler = _.get(self.fellow_travelers,fellow.key,{duration:0,
+                    trips:[], locations:[]});
+            traveler.duration = (parseInt(traveler.duration) + parseInt(loc.duration));
+            traveler.trips.push(loc.trip);
+            traveler.trips = _.uniq(traveler.trips);
+            traveler.tripsNo = traveler.trips.length;
+            traveler.locations.push(loc.name);
+            traveler.locations = _.uniq(traveler.locations);
+            traveler.locationsNo = traveler.locations.length;
+            traveler.name = _.get(traveler,'name',_.get(fellow,'name'));
+            traveler.avatar_url = _.get(traveler,'avatar_url',_.get(fellow,'avatar_url'));
+            _.set(self.fellow_travelers,fellow.key,traveler);
+        }
 
         /*****************************************************************
          * Get next or previous location
@@ -421,14 +468,18 @@
                 var start_date = _.clone(prevLoc.end_datetime);
                 start_date = moment(start_date).add(1, 'day')._d;        
                 var map = _.cloneDeep(prevLoc.map);
-                var trans_start = {locationRaw: _.cloneDeep(_.get(prevLoc,'locationRaw')),
+                var trans_start = {
+                        locationRaw: _.clone(_.get(prevLoc,'locationRaw')),
+                        geo: _.clone(_.get(prevLoc,'geo')),
                         name: _.clone(_.get(prevLoc,'name')),
                         type: _.clone(_.get(prevLoc,['trans_start','type'],
                                 defaultTrans.type))};
                 var firstLocTrans = _.get(trip.locations[0],'trans_start');
                 $log.debug("[nextLocation]: first location");
                 $log.debug(firstLocTrans);
-                var trans_end = {locationRaw: _.cloneDeep(_.get(firstLocTrans,'locationRaw')),
+                var trans_end = {
+                        locationRaw: _.clone(_.get(firstLocTrans,'locationRaw')),
+                        geo: _.clone(_.get(firstLocTrans,'geo')),
                         name: _.clone(_.get(firstLocTrans,'name')),
                         type: _.clone(_.get(firstLocTrans,'type',
                                 defaultTrans.type))};
