@@ -351,6 +351,7 @@
                 'pictures','fellow_travelers','key','id'];
             var newLocs = [];
             var newTrip = {};
+            $mdDialog.hide();
 
             // prepare data for server
             _.forEach(locs,function(loc,i){
